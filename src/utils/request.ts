@@ -58,8 +58,7 @@ class HttpClient {
 }
 
 const http = new HttpClient({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 1000 * 10,
+  baseURL: import.meta.env.VITE_API_URL
 })
 
 export default http
