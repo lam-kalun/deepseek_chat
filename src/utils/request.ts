@@ -30,7 +30,7 @@ class HttpClient {
   protected initializeResponseInterceptor() {
     this.instance.interceptors.response.use(
       (config) => {
-        return config
+        return config.data
       },
       (error) => {
         return Promise.reject(error)

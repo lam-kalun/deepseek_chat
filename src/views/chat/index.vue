@@ -1,4 +1,5 @@
 <script setup lang='ts'>
+import http from '@/utils/request';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 const title = ref<string>('')
@@ -17,31 +18,42 @@ function confirm() {
   send()
 }
 
-const ctrl = new AbortController()
+// const ctrl = new AbortController()
+// async function send() {
+//   fetchEventSource(import.meta.env.VITE_API_URL+'/multiple-chat', {
+//     method: 'post',
+//     body: JSON.stringify({
+//       queList: queList.value,
+//       ansList: ansList.value
+//     }),
+//     signal: ctrl.signal,
+//     onmessage(res) {
+//       const { data } = res
+//         if (data === '[DONE]') {
+//           ctrl.abort()
+//           return
+//         }
+//         const delta = JSON.parse(data).choices[0].delta
+//         if (Object.prototype.hasOwnProperty.call(delta, 'role')) {
+//           ansList.value.push('')
+//         }
+//         if (delta.content) {
+//           ansList.value[ansList.value.length - 1] += delta.content
+//         }
+//     }
+//   })
+// }
+
 async function send() {
-  fetchEventSource(import.meta.env.VITE_API_URL+'/multiple-chat', {
+  const res = await http.request<string>({
+    url: '/mcp-chat',
     method: 'post',
-    body: JSON.stringify({
+    data: {
       queList: queList.value,
       ansList: ansList.value
-    }),
-    signal: ctrl.signal,
-    onmessage(res) {
-      const { data } = res
-        if (data === '[DONE]') {
-          ctrl.abort()
-          close()
-          return
-        }
-        const delta = JSON.parse(data).choices[0].delta
-        if (Object.prototype.hasOwnProperty.call(delta, 'role')) {
-          ansList.value.push('')
-        }
-        if (delta.content) {
-          ansList.value[ansList.value.length - 1] += delta.content
-        }
     }
   })
+  ansList.value.push(res)
 }
 
 const queList = ref<string[]>([])
@@ -60,7 +72,7 @@ const renderList = computed(() => queList.value.reduce((acc: string[], cur: stri
     <title class="title">{{ title }}</title>
     <div class="chat-content">
       <div v-for="(item, index) in renderList" :key="index">
-        <span v-html="item"></span>
+        <span>{{ item }}</span>
       </div>
     </div>
     <div class="question-content">
