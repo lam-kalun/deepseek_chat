@@ -18,9 +18,10 @@ function confirm() {
   send()
 }
 
+// 流式返回
 // const ctrl = new AbortController()
 // async function send() {
-//   fetchEventSource(import.meta.env.VITE_API_URL+'/multiple-chat', {
+//   fetchEventSource(import.meta.env.VITE_API_URL+'/stream-mcp-chat', {
 //     method: 'post',
 //     body: JSON.stringify({
 //       queList: queList.value,
@@ -29,31 +30,60 @@ function confirm() {
 //     signal: ctrl.signal,
 //     onmessage(res) {
 //       const { data } = res
-//         if (data === '[DONE]') {
-//           ctrl.abort()
-//           return
-//         }
-//         const delta = JSON.parse(data).choices[0].delta
-//         if (Object.prototype.hasOwnProperty.call(delta, 'role')) {
-//           ansList.value.push('')
-//         }
-//         if (delta.content) {
-//           ansList.value[ansList.value.length - 1] += delta.content
-//         }
+//       if (data === '[DONE]') {
+//         ctrl.abort()
+//         return
+//       }
+//       const delta = JSON.parse(data).choices[0].delta
+//       if (Object.prototype.hasOwnProperty.call(delta, 'role')) {
+//         ansList.value.push('')
+//       }
+//       if (delta.content) {
+//         ansList.value[ansList.value.length - 1] += delta.content
+//       }
 //     }
 //   })
 // }
 
+// mcp
+// async function send() {
+//   const res = await http.request<string>({
+//     url: '/mcp-chat',
+//     method: 'post',
+//     data: {
+//       queList: queList.value,
+//       ansList: ansList.value
+//     }
+//   })
+//   ansList.value.push(res)
+// }
+
+// mcp流式返回
+const ctrl = new AbortController()
 async function send() {
-  const res = await http.request<string>({
-    url: '/mcp-chat',
+  fetchEventSource(import.meta.env.VITE_API_URL+'/stream-mcp-chat', {
     method: 'post',
-    data: {
+    body: JSON.stringify({
       queList: queList.value,
       ansList: ansList.value
+    }),
+    signal: ctrl.signal,
+    onmessage(res) {
+      // todo try catch错误处理，不然出错会一直调用接口
+      const { data } = res
+      if (data === '[DONE]') {
+        ctrl.abort()
+        return
+      }
+      const delta = JSON.parse(data)
+      if (delta.message === 'first') {
+        ansList.value.push('')
+      }
+      if (delta.content) {
+        ansList.value[ansList.value.length - 1] += delta.content
+      }
     }
   })
-  ansList.value.push(res)
 }
 
 const queList = ref<string[]>([])
