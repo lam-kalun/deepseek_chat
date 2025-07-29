@@ -21,7 +21,7 @@ function confirm() {
 // 流式返回
 // const ctrl = new AbortController()
 // async function send() {
-//   fetchEventSource(import.meta.env.VITE_API_URL+'/stream-mcp-chat', {
+//   fetchEventSource(import.meta.env.VITE_API_URL+'/multiple-chat', {
 //     method: 'post',
 //     body: JSON.stringify({
 //       queList: queList.value,
@@ -69,18 +69,22 @@ async function send() {
     }),
     signal: ctrl.signal,
     onmessage(res) {
-      // todo try catch错误处理，不然出错会一直调用接口
-      const { data } = res
-      if (data === '[DONE]') {
-        ctrl.abort()
-        return
-      }
-      const delta = JSON.parse(data)
-      if (delta.message === 'first') {
-        ansList.value.push('')
-      }
-      if (delta.content) {
-        ansList.value[ansList.value.length - 1] += delta.content
+      // !todo try catch错误处理，不然出错会一直调用接口
+      try {
+        const { data } = res
+        if (data === '[DONE]') {
+          ctrl.abort()
+          return
+        }
+        const delta = JSON.parse(data)
+        if (delta.message === 'first') {
+          ansList.value.push('')
+        }
+        if (delta.content) {
+          ansList.value[ansList.value.length - 1] += delta.content
+        }
+      } catch (err) {
+        console.log(err);
       }
     }
   })
