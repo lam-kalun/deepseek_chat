@@ -46,49 +46,49 @@ function confirm() {
 // }
 
 // mcp
-// async function send() {
-//   const res = await http.request<string>({
-//     url: '/mcp-chat',
-//     method: 'post',
-//     data: {
-//       queList: queList.value,
-//       ansList: ansList.value
-//     }
-//   })
-//   ansList.value.push(res)
-// }
-
-// mcp流式返回
-const ctrl = new AbortController()
 async function send() {
-  fetchEventSource(import.meta.env.VITE_API_URL+'/stream-mcp-chat', {
+  const res = await http.request<string>({
+    url: '/mcp-chat',
     method: 'post',
-    body: JSON.stringify({
+    data: {
       queList: queList.value,
       ansList: ansList.value
-    }),
-    signal: ctrl.signal,
-    onmessage(res) {
-      // !todo try catch错误处理，不然出错会一直调用接口
-      try {
-        const { data } = res
-        if (data === '[DONE]') {
-          ctrl.abort()
-          return
-        }
-        const delta = JSON.parse(data)
-        if (delta.message === 'first') {
-          ansList.value.push('')
-        }
-        if (delta.content) {
-          ansList.value[ansList.value.length - 1] += delta.content
-        }
-      } catch (err) {
-        console.log(err);
-      }
     }
   })
+  ansList.value.push(res)
 }
+
+// mcp流式返回
+// const ctrl = new AbortController()
+// async function send() {
+//   fetchEventSource(import.meta.env.VITE_API_URL+'/stream-mcp-chat', {
+//     method: 'post',
+//     body: JSON.stringify({
+//       queList: queList.value,
+//       ansList: ansList.value
+//     }),
+//     signal: ctrl.signal,
+//     onmessage(res) {
+//       // !todo try catch错误处理，不然出错会一直调用接口
+//       try {
+//         const { data } = res
+//         if (data === '[DONE]') {
+//           ctrl.abort()
+//           return
+//         }
+//         const delta = JSON.parse(data)
+//         if (delta.message === 'first') {
+//           ansList.value.push('')
+//         }
+//         if (delta.content) {
+//           ansList.value[ansList.value.length - 1] += delta.content
+//         }
+//       } catch (err) {
+//         console.log(err);
+//       }
+//     }
+//   })
+// }
 
 const queList = ref<string[]>([])
 const ansList = ref<string[]>([])
